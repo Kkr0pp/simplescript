@@ -1,6 +1,9 @@
 package lib.src;
 
-public class SimpleToken {
-
-
+enum SimpleTokens {
+    CHECK, ORCHECK, OTHERWISE, CHOOSE, WHEN, FALLBACK,
+    REPEAT, WHILE, STOP, SKIP, INT, FLOAT, BOOL, STRING, CHAR,
+    AS, TASK, VOID, GIVE, PLUS, MINUS, TIMES, OVER, MOD,
+    IS, ISNT, LESS, MORE, LESSEQ, MOREEQ, BOTH, OR, NOT,
+    BE, LET, SHOW, ASK
 }

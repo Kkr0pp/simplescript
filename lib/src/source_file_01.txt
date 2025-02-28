@@ -1,0 +1,5 @@
+let int count be 1;
+while (count lesseq 5) {
+	show(count);
+	count be count plus 1;
+}

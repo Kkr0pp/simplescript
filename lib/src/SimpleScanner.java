@@ -1,4 +1,5 @@
 package lib.src;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
@@ -10,10 +11,23 @@ public class SimpleScanner {
         this.scanner = new Scanner(new File(filePath));
     }
 
-        //dito natin ipapasok yung mga token shits
-    public void readFile() {
-        while (scanner.hasNextLine()) {
-            System.out.println(scanner.nextLine());
+    public void scanTokens() {
+        while (scanner.hasNext()) {
+            String word = scanner.next();
+            if (isToken(word)) {
+                System.out.println("TOKEN: " + word);
+            } else {
+                System.out.println("IDENTIFIER: " + word);
+            }
+        }
+    }
+
+    private boolean isToken(String word) {
+        try {
+            SimpleTokens.valueOf(word.toUpperCase());
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
         }
     }
 
@@ -22,17 +36,20 @@ public class SimpleScanner {
     }
 
     public static void main(String[] args) {
-        if (args.length < 1) {
-            System.out.println("Usage: java SimpleScanner <file-path>");
+        System.out.print("Input File Path : ");
+        Scanner filepath = new Scanner(System.in);
+        String filePath = filepath.nextLine();
+        if (filePath==null) {
+            System.out.println("Usage: java lib.src.SimpleScanner <file-path>");
             return;
         }
-// dito natin itrtry irun yung text file. args yung text path so irun natin to thru terminal
+
         try {
-            SimpleScanner simpleScanner = new SimpleScanner(args[0]);
-            simpleScanner.readFile();
+            SimpleScanner simpleScanner = new SimpleScanner(filePath);
+            simpleScanner.scanTokens();
             simpleScanner.closeScanner();
         } catch (FileNotFoundException e) {
-            System.out.println("File not found: " + args[0]);
+            System.out.println("File not found: " + filePath);
         }
     }
 }
