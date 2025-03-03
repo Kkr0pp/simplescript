@@ -4,7 +4,7 @@ import java.io.FileNotFoundException;
 
 public class Tester {
     public static void main(String[] args) {
-        String filePath = "lib/src/source_file_02.simp"; // Input file
+        String filePath = "lib/src/invalid_tokens.simp"; // Input file
 
         SimpleScanner scanner = null;
         try {

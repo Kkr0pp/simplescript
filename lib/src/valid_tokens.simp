@@ -1,0 +1,23 @@
+let int x be 10;
+let float y be 3.14;
+let string name be "John";
+let bool is_valid be yes;
+
+check (x is 10) {
+    show("x is 10");
+} orcheck (x more 5) {
+    show("x is greater than 5");
+} otherwise {
+    show("x is less than or equal to 5");
+}
+
+repeat (let int i be 1 to 5) {
+    show(i);
+}
+
+task add(int a, int b) {
+    give a plus b;
+}
+
+let int result be add(5, 3);
+show(result);
