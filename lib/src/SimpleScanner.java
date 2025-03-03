@@ -2,83 +2,201 @@ package lib.src;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.HashSet;
 import java.util.Scanner;
+import java.util.Set;
 
 public class SimpleScanner {
     private Scanner scanner;
+    private SymbolTable symbolTable;
+    private static final Set<String> TOKENS = new HashSet<>();
+    private int lineNumber = 1;
+    private int columnNumber = 1;
+    private StringBuilder unreadBuffer = new StringBuilder(); // For unreading characters
 
-    public SimpleScanner(String filePath) throws FileNotFoundException {
-        // Throws FileNotFoundException if the file doesn't exist
-        this.scanner = new Scanner(new File(filePath));
+    static {
+        // Populate reserved words from SimpleTokens enum
+        for (SimpleTokens token : SimpleTokens.values()) {
+            TOKENS.add(token.name().toLowerCase());
+        }
     }
 
-    public void scanTokens() {
-        // Wrap the scanning process in a try-catch to handle any runtime exceptions
-        try {
-            while (scanner.hasNext()) {
-                String word = scanner.next();
-                if (isToken(word)) {
-                    System.out.println("TOKEN: " + word);
-                } else {
-                    System.out.println("IDENTIFIER: " + word);
+    public SimpleScanner(String filePath) throws FileNotFoundException {
+        this.scanner = new Scanner(new File(filePath));
+        this.symbolTable = new SymbolTable();
+        this.scanner.useDelimiter("");
+    }
+
+    public Token getNextToken() {
+        StringBuilder tokenBuilder = new StringBuilder();
+        boolean inString = false; // Track if we're inside a string literal
+        boolean inComment = false; // Track if we're inside a comment
+        char stringDelimiter = '\0'; // Track the type of string delimiter ('"' or '\'')
+
+        while (scanner.hasNext() || unreadBuffer.length() > 0) {
+            char c = readChar();
+
+            // Update line and column numbers
+            if (c == '\n') {
+                lineNumber++;
+                columnNumber = 1;
+            } else {
+                columnNumber++;
+            }
+
+            // Handle comments
+            if (c == '|' && !inString) {
+                if (scanner.hasNext()) {
+                    char nextChar = scanner.next().charAt(0);
+                    if (nextChar == '*') {
+                        inComment = true; // Start of multi-line comment
+                    } else {
+                        // Single-line comment: skip until end of line
+                        while (scanner.hasNext() && scanner.next().charAt(0) != '\n') {
+                            // Skip characters in the comment
+                        }
+                        lineNumber++; // Move to the next line
+                        columnNumber = 1; // Reset column number
+                        continue; // Resume scanning after the comment
+                    }
+                }
+                continue;
+            }
+
+            // Handle multi-line comments
+            if (inComment) {
+                if (c == '*' && scanner.hasNext() && scanner.next().charAt(0) == '|') {
+                    inComment = false; // End of multi-line comment
+                }
+                continue;
+            }
+
+            // Handle string literals
+            if (c == '"' || c == '\'') {
+                if (!inString) {
+                    inString = true;
+                    stringDelimiter = c; // Track the type of string delimiter
+                } else if (c == stringDelimiter) {
+                    inString = false; // End of string literal
                 }
             }
-        } catch (Exception e) {
-            // Catch any unexpected exceptions during scanning (e.g., IO issues)
-            System.err.println("Error occurred during scanning: " + e.getMessage());
-            e.printStackTrace();
+
+            // If not in a string or comment, check for token boundaries
+            if (!inString && !inComment && (Character.isWhitespace(c) || isDelimiter(c))) {
+                // Handle the current token
+                String token = tokenBuilder.toString().trim();
+                if (!token.isEmpty()) {
+                    Token result = createToken(token);
+                    if (result != null) {
+                        return result;
+                    } else {
+                        skipInvalidToken(); // Skip the invalid token
+                        tokenBuilder.setLength(0); // Reset the token builder
+                        continue; // Continue scanning
+                    }
+                }
+                tokenBuilder.setLength(0); // Reset the token builder
+
+                // Handle delimiters as separate tokens
+                if (isDelimiter(c)) {
+                    return createToken(String.valueOf(c));
+                }
+            } else {
+                // Append the character to the current token
+                tokenBuilder.append(c);
+            }
+        }
+
+        // Handle the last token
+        String token = tokenBuilder.toString().trim();
+        if (!token.isEmpty()) {
+            Token result = createToken(token);
+            if (result != null) {
+                return result;
+            } else {
+                skipInvalidToken(); // Skip the invalid token
+            }
+        }
+
+        return null; // End of file
+    }
+
+    private char readChar() {
+        if (unreadBuffer.length() > 0) {
+            char c = unreadBuffer.charAt(unreadBuffer.length() - 1);
+            unreadBuffer.deleteCharAt(unreadBuffer.length() - 1);
+            return c;
+        }
+        return scanner.next().charAt(0);
+    }
+
+    private void skipInvalidToken() {
+        while (scanner.hasNext()) {
+            char c = scanner.next().charAt(0);
+            if (Character.isWhitespace(c) || isDelimiter(c)) {
+                break; // Stop skipping at the next whitespace or delimiter
+            }
+        }
+    }
+
+    private Token createToken(String token) {
+        if (isToken(token)) {
+            return new Token(TokenType.RESERVED_WORD, token.toUpperCase(), lineNumber, columnNumber - token.length());
+        } else if (isPunctuation(token)) {
+            return new Token(TokenType.PUNCTUATION, token, lineNumber, columnNumber - token.length());
+        } else if (isConstant(token)) {
+            return new Token(TokenType.CONSTANT, token, lineNumber, columnNumber - token.length());
+        } else if (isIdentifier(token)) {
+            if (!symbolTable.contains(token)) {
+                symbolTable.add(token, "id");
+            }
+            return new Token(TokenType.IDENTIFIER, token, lineNumber, columnNumber - token.length());
+        } else if (isOperator(token)) {
+            return new Token(TokenType.OPERATOR, token, lineNumber, columnNumber - token.length());
+        } else {
+            System.err.println("Error: Invalid token '" + token + "' at line " + lineNumber + ", column "
+                    + (columnNumber - token.length()));
+            return null; // Skip the invalid token
         }
     }
 
     private boolean isToken(String word) {
-        try {
-            // Check if the word is a valid token by converting it to uppercase and looking it up in the enum
-            SimpleTokens.valueOf(word.toUpperCase());
-            return true;
-        } catch (IllegalArgumentException e) {
-            // If the word is not in the enum, it will throw IllegalArgumentException
-            return false;
-        }
+        return TOKENS.contains(word.toLowerCase());
+    }
+
+    private boolean isPunctuation(String word) {
+        return word.matches("[;(),{}]");
+    }
+
+    private boolean isConstant(String word) {
+        // Match integers, floats, strings, booleans, and characters
+        return word.matches("\\d+") || // Integers
+                word.matches("[+-]?\\d+\\.\\d+") || // Floats
+                word.matches("\"[^\"]*\"") || // Double-quoted strings
+                word.matches("'[^']*'") || // Single-quoted strings
+                word.matches("yes|no") || // Booleans
+                word.matches("'.'"); // Single characters
+    }
+
+    private boolean isIdentifier(String word) {
+        return word.matches("[a-zA-Z_][a-zA-Z0-9_]*") && !isToken(word);
+    }
+
+    private boolean isOperator(String word) {
+        return word.matches("plus|minus|times|over|mod|is|isnt|less|more|lesseq|moreeq|and|or|not|\\+");
+    }
+
+    private boolean isDelimiter(char c) {
+        return c == ';' || c == '(' || c == ')' || c == '{' || c == '}' || c == ',';
     }
 
     public void closeScanner() {
-        // Safely close the scanner if it's not null
         if (scanner != null) {
             scanner.close();
         }
     }
 
-    public static void main(String[] args) {
-        System.out.print("Input File Path : ");
-        Scanner inputScanner = new Scanner(System.in);
-        String filePath = inputScanner.nextLine();
-        
-        // Check for an empty file path; if empty, print usage instructions and exit.
-        if (filePath == null || filePath.trim().isEmpty()) {
-            System.out.println("Usage: java lib.src.SimpleScanner <file-path>");
-            inputScanner.close();
-            return;
-        }
-
-        SimpleScanner simpleScanner = null;
-        try {
-            // Attempt to create a SimpleScanner instance
-            simpleScanner = new SimpleScanner(filePath);
-            // Process the tokens from the input file
-            simpleScanner.scanTokens();
-        } catch (FileNotFoundException e) {
-            // Handles the specific case where the file is not found
-            System.err.println("File not found: " + filePath);
-        } catch (Exception e) {
-            // Catches any other unexpected exceptions in main
-            System.err.println("An unexpected error occurred: " + e.getMessage());
-            e.printStackTrace();
-        } finally {
-            // Ensure that resources are closed, regardless of success or failure
-            if (simpleScanner != null) {
-                simpleScanner.closeScanner();
-            }
-            inputScanner.close();
-        }
+    public SymbolTable getSymbolTable() {
+        return symbolTable;
     }
 }

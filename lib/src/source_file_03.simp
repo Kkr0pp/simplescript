@@ -1,0 +1,72 @@
+| This is a single-line comment
+
+|* This is a
+   multi-line comment *|
+
+let int age be 20; | Variable declaration
+let float pi be 3.14;
+let bool is_valid be yes;
+let string name be "John";
+let char initial be 'J';
+
+| Conditional statements
+check (age more 18) {
+    show(name plus " is an adult.");
+} orcheck (age is 18) {
+    show(name plus " is exactly 18.");
+} otherwise {
+    show(name plus " is a minor.");
+}
+
+| Looping constructs
+let int count be 1;
+while (count lesseq 5) {
+    show("Count: " plus count);
+    count be count plus 1;
+}
+
+repeat (i be 1 to 5) {
+    show("Iteration: " plus i);
+}
+
+| Function declaration
+task int add(int x, int y) {
+    give x plus y;
+}
+
+| Function call
+let int result be add(5, 3);
+show("Result of add(5, 3): " + result);
+
+| Arithmetic expressions
+let int a be 10;
+let int b be 5;
+let int sum be a plus b;
+let int difference be a minus b;
+let int product be a times b;
+let float quotient be a over b;
+let int remainder be a mod b;
+
+| Relational expressions
+check (a is b) {
+    show("a is equal to b");
+} orcheck (a more b) {
+    show("a is greater than b");
+} otherwise {
+    show("a is less than b");
+}
+
+| Logical expressions
+check (is_valid and (a more 0)) {
+    show("is_valid is yes and a is positive");
+}
+
+| Type conversion
+let float float_age be age as float;
+show("Age as float: " plus float_age);
+
+| Input and output
+let string user_name be ask("What is your name?");
+show("Hello, " plus user_name plus "!");
+
+| End of program
