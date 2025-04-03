@@ -140,24 +140,34 @@ public class SimpleScanner {
     }
 
     private Token createToken(String token) {
-        if (isToken(token)) {
-            return new Token(TokenType.RESERVED_WORD, token.toUpperCase(), lineNumber, columnNumber - token.length());
-        } else if (isPunctuation(token)) {
-            return new Token(TokenType.PUNCTUATION, token, lineNumber, columnNumber - token.length());
-        } else if (isConstant(token)) {
-            return new Token(TokenType.CONSTANT, token, lineNumber, columnNumber - token.length());
-        } else if (isIdentifier(token)) {
-            if (!symbolTable.contains(token)) {
-                symbolTable.add(token, "id");
-            }
-            return new Token(TokenType.IDENTIFIER, token, lineNumber, columnNumber - token.length());
-        } else if (isOperator(token)) {
-            return new Token(TokenType.OPERATOR, token, lineNumber, columnNumber - token.length());
-        } else {
-            System.err.println("Error: Invalid token '" + token + "' at line " + lineNumber + ", column "
-                    + (columnNumber - token.length()));
-            return null; // Skip the invalid token
+        TokenType type = null;
+
+        switch (getTokenCategory(token)) {
+            case "RESERVED_WORD":
+                type = TokenType.RESERVED_WORD;
+                token = token.toUpperCase();
+                break;
+            case "PUNCTUATION":
+                type = TokenType.PUNCTUATION;
+                break;
+            case "CONSTANT":
+                type = TokenType.CONSTANT;
+                break;
+            case "IDENTIFIER":
+                if (!symbolTable.contains(token)) {
+                    symbolTable.add(token, "id");
+                }
+                type = TokenType.IDENTIFIER;
+                break;
+            case "OPERATOR":
+                type = TokenType.OPERATOR;
+                break;
+            default:
+                System.err.println("Error: Invalid token '" + token + "' at line " + lineNumber + ", column "
+                        + (columnNumber - token.length()));
+                return null; // Skip the invalid token
         }
+        return new Token(type, token, lineNumber, columnNumber - token.length());
     }
 
     private boolean isToken(String word) {
@@ -198,5 +208,14 @@ public class SimpleScanner {
 
     public SymbolTable getSymbolTable() {
         return symbolTable;
+    }
+
+    private String getTokenCategory(String token) {
+        if (isToken(token)) return "RESERVED_WORD";
+        if (isPunctuation(token)) return "PUNCTUATION";
+        if (isConstant(token)) return "CONSTANT";
+        if (isIdentifier(token)) return "IDENTIFIER";
+        if (isOperator(token)) return "OPERATOR";
+        return "INVALID";
     }
 }
