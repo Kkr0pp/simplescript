@@ -1,23 +1,32 @@
-let int x be 10;
-let float y be 3.14;
-let string name be "John";
-let bool is_valid be yes;
+| This program calculates the factorial of a number and checks if it's even or odd.
 
-check (x is 10) {
-    show("x is 10");
-} orcheck (x more 5) {
-    show("x is greater than 5");
-} otherwise {
-    show("x is less than or equal to 5");
+| Function to calculate factorial
+task int factorial(int n) {
+    let int result be 1;
+    repeat (let int i be 1; i lesseq n; i be i plus 1) {
+        result be result times i;
+    }
+    give result;
 }
 
-repeat (let int i be 1 to 5) {
-    show(i);
+| Function to check if a number is even or odd
+task string check_even_odd(int num) {
+    check (num mod 2 is 0) {
+        give "even";
+    } otherwise {
+        give "odd";
+    }
 }
 
-task add(int a, int b) {
-    give a plus b;
-}
+| Main program logic
+let int number be ask("Enter a number to calculate its factorial: ");
+let int fact be factorial(number);
+show("The factorial of ");
+show(number);
+show(" is: ");
+show(fact);
 
-let int result be add(5, 3);
-show(result);
+let string even_odd be check_even_odd(fact);
+show("The factorial is ");
+show(even_odd);
+show(".");

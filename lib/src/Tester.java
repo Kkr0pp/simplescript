@@ -1,10 +1,13 @@
 package lib.src;
 
+import lib.src.tokenutil.SymbolTable;
+import lib.src.tokenutil.Token;
+
 import java.io.FileNotFoundException;
 
 public class Tester {
     public static void main(String[] args) {
-        String filePath = "lib/src/valid_tokens.simp"; // Input file
+        String filePath = "lib/src/source_file_03.simp"; // Input file
 
         SimpleScanner scanner = null;
         try {
@@ -22,10 +25,6 @@ public class Tester {
             // Reset scanner to read tokens again for parsing
             scanner = new SimpleScanner(filePath);
 
-            // Initialize parser and start parsing
-            Parser parser = new Parser(scanner);
-            System.out.println("\nParsing result:");
-            parser.parse();
 
         } catch (FileNotFoundException e) {
             System.err.println("File not found: " + filePath);

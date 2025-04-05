@@ -6,6 +6,9 @@ import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
 
+import static lib.src.tokenutil.TokenUtil.*;
+import lib.src.tokenutil.*;
+
 public class SimpleScanner {
     private Scanner scanner;
     private SymbolTable symbolTable;
@@ -15,7 +18,6 @@ public class SimpleScanner {
     private StringBuilder unreadBuffer = new StringBuilder(); // For unreading characters
 
     static {
-        // Populate reserved words from SimpleTokens enum
         for (SimpleTokens token : SimpleTokens.values()) {
             TOKENS.add(token.name().toLowerCase());
         }
@@ -29,14 +31,13 @@ public class SimpleScanner {
 
     public Token getNextToken() {
         StringBuilder tokenBuilder = new StringBuilder();
-        boolean inString = false; // Track if we're inside a string literal
-        boolean inComment = false; // Track if we're inside a comment
-        char stringDelimiter = '\0'; // Track the type of string delimiter ('"' or '\'')
+        boolean inString = false;
+        boolean inComment = false;
+        char stringDelimiter = '\0';
 
         while (scanner.hasNext() || unreadBuffer.length() > 0) {
             char c = readChar();
 
-            // Update line and column numbers
             if (c == '\n') {
                 lineNumber++;
                 columnNumber = 1;
@@ -44,81 +45,71 @@ public class SimpleScanner {
                 columnNumber++;
             }
 
-            // Handle comments
             if (c == '|' && !inString) {
                 if (scanner.hasNext()) {
                     char nextChar = scanner.next().charAt(0);
                     if (nextChar == '*') {
-                        inComment = true; // Start of multi-line comment
+                        inComment = true;
                     } else {
-                        // Single-line comment: skip until end of line
                         while (scanner.hasNext() && scanner.next().charAt(0) != '\n') {
-                            // Skip characters in the comment
                         }
-                        lineNumber++; // Move to the next line
-                        columnNumber = 1; // Reset column number
-                        continue; // Resume scanning after the comment
+                        lineNumber++;
+                        columnNumber = 1;
+                        continue;
                     }
                 }
                 continue;
             }
 
-            // Handle multi-line comments
             if (inComment) {
                 if (c == '*' && scanner.hasNext() && scanner.next().charAt(0) == '|') {
-                    inComment = false; // End of multi-line comment
+                    inComment = false;
                 }
                 continue;
             }
 
-            // Handle string literals
             if (c == '"' || c == '\'') {
                 if (!inString) {
                     inString = true;
-                    stringDelimiter = c; // Track the type of string delimiter
+                    stringDelimiter = c;
                 } else if (c == stringDelimiter) {
-                    inString = false; // End of string literal
+                    inString = false;
                 }
             }
 
-            // If not in a string or comment, check for token boundaries
             if (!inString && !inComment && (Character.isWhitespace(c) || isDelimiter(c))) {
-                // Handle the current token
                 String token = tokenBuilder.toString().trim();
                 if (!token.isEmpty()) {
                     Token result = createToken(token);
                     if (result != null) {
                         return result;
                     } else {
-                        skipInvalidToken(); // Skip the invalid token
-                        tokenBuilder.setLength(0); // Reset the token builder
-                        continue; // Continue scanning
+                        skipInvalidToken();
+                        tokenBuilder.setLength(0);
+                        continue;
                     }
                 }
-                tokenBuilder.setLength(0); // Reset the token builder
+                tokenBuilder.setLength(0);
 
-                // Handle delimiters as separate tokens
                 if (isDelimiter(c)) {
                     return createToken(String.valueOf(c));
                 }
             } else {
-                // Append the character to the current token
                 tokenBuilder.append(c);
             }
         }
 
-        // Handle the last token
         String token = tokenBuilder.toString().trim();
         if (!token.isEmpty()) {
             Token result = createToken(token);
             if (result != null) {
                 return result;
             } else {
-                skipInvalidToken(); // Skip the invalid token
+                skipInvalidToken();
             }
         }
 
-        return null; // End of file
+        return null;
     }
 
     private char readChar() {
@@ -134,70 +125,38 @@ public class SimpleScanner {
         while (scanner.hasNext()) {
             char c = scanner.next().charAt(0);
             if (Character.isWhitespace(c) || isDelimiter(c)) {
-                break; // Stop skipping at the next whitespace or delimiter
+                break;
             }
         }
     }
 
     private Token createToken(String token) {
-        TokenType type = null;
-
-        switch (getTokenCategory(token)) {
-            case "RESERVED_WORD":
-                type = TokenType.RESERVED_WORD;
-                token = token.toUpperCase();
-                break;
-            case "PUNCTUATION":
-                type = TokenType.PUNCTUATION;
-                break;
-            case "CONSTANT":
-                type = TokenType.CONSTANT;
-                break;
-            case "IDENTIFIER":
-                if (!symbolTable.contains(token)) {
-                    symbolTable.add(token, "id");
-                }
-                type = TokenType.IDENTIFIER;
-                break;
-            case "OPERATOR":
-                type = TokenType.OPERATOR;
-                break;
-            default:
-                System.err.println("Error: Invalid token '" + token + "' at line " + lineNumber + ", column "
-                        + (columnNumber - token.length()));
-                return null; // Skip the invalid token
+        TokenType type = getTokenType(token);
+        if (type == null) {
+            System.err.println("Error: Invalid token '" + token + "' at line " + lineNumber + ", column "
+                    + (columnNumber - token.length()));
+            return null;
         }
-        return new Token(type, token, lineNumber, columnNumber - token.length());
+
+        if (type == TokenType.IDENTIFIER && !symbolTable.contains(token)) {
+            symbolTable.add(token, "id");
+        }
+
+        return new Token(type, token, lineNumber, columnNumber - token.length() + 1);
     }
 
-    private boolean isToken(String word) {
-        return TOKENS.contains(word.toLowerCase());
-    }
-
-    private boolean isPunctuation(String word) {
-        return word.matches("[;(),{}]");
-    }
-
-    private boolean isConstant(String word) {
-        // Match integers, floats, strings, booleans, and characters
-        return word.matches("\\d+") || // Integers
-                word.matches("[+-]?\\d+\\.\\d+") || // Floats
-                word.matches("\"[^\"]*\"") || // Double-quoted strings
-                word.matches("'[^']*'") || // Single-quoted strings
-                word.matches("yes|no") || // Booleans
-                word.matches("'.'"); // Single characters
-    }
-
-    private boolean isIdentifier(String word) {
-        return word.matches("[a-zA-Z_][a-zA-Z0-9_]*") && !isToken(word);
-    }
-
-    private boolean isOperator(String word) {
-        return word.matches("plus|minus|times|over|mod|is|isnt|less|more|lesseq|moreeq|and|or|not|\\+");
-    }
-
-    private boolean isDelimiter(char c) {
-        return c == ';' || c == '(' || c == ')' || c == '{' || c == '}' || c == ',';
+    private TokenType getTokenType(String token) {
+        if (isOperator(token)) return TokenType.OPERATOR;
+        if (isConditional(token)) return TokenType.CONDITIONAL;
+        if (isLogical(token)) return TokenType.LOGICAL;
+        if (isAssignment(token)) return TokenType.ASSIGNMENT;
+        if (isLoop(token)) return TokenType.LOOP;
+        if (isPrimitiveType(token)) return TokenType.PRIMITIVE;
+        if (isFunction(token)) return TokenType.FUNCTION;
+        if (isPunctuation(token)) return TokenType.PUNCTUATION;
+        if (isLiteral(token)) return TokenType.LITERAL;
+        if (isIdentifier(token, TOKENS)) return TokenType.IDENTIFIER;
+        return null;
     }
 
     public void closeScanner() {
@@ -208,14 +167,5 @@ public class SimpleScanner {
 
     public SymbolTable getSymbolTable() {
         return symbolTable;
-    }
-
-    private String getTokenCategory(String token) {
-        if (isToken(token)) return "RESERVED_WORD";
-        if (isPunctuation(token)) return "PUNCTUATION";
-        if (isConstant(token)) return "CONSTANT";
-        if (isIdentifier(token)) return "IDENTIFIER";
-        if (isOperator(token)) return "OPERATOR";
-        return "INVALID";
     }
 }
