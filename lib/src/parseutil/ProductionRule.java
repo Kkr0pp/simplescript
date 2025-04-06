@@ -3,19 +3,19 @@ package lib.src.parseutil;
 import java.util.List;
 
 public class ProductionRule {
-    private final ItemType lhs;
-    private final List<ItemType> rhs;
+    private final NonTerminal lhs;
+    private final List<Object> rhs;
 
-    public ProductionRule(ItemType lhs, List<ItemType> rhs) {
+    public ProductionRule(NonTerminal lhs, List<Object> rhs) {
         this.lhs = lhs;
         this.rhs = rhs;
     }
 
-    public ItemType getLHS() {
+    public NonTerminal getLHS() {
         return lhs;
     }
 
-    public List<ItemType> getRHS() {
+    public List<Object> getRHS() {
         return rhs;
     }
 

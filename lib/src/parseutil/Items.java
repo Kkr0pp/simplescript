@@ -1,94 +1,136 @@
 package lib.src.parseutil;
+
 import lib.src.tokenutil.Token;
 
 public class Items {
     private Token token;
-    private ItemType ItemType;
+    private Terminal terminal;
+    private NonTerminal nonTerminal;;
 
     public Items(Token token) {
         this.token = token;
     }
 
-    public ItemType getType() {
+    public Terminal getType() {
         switch (token.getType()) {
 
             case FUNCTION:
-                if (token.getLexeme().equals("task")) return ItemType.TASK;
-                if (token.getLexeme().equals("give")) return ItemType.GIVE;
+                if (token.getLexeme().equals("task"))
+                    return Terminal.task;
+                if (token.getLexeme().equals("give"))
+                    return Terminal.give;
                 break;
 
             case ASSIGNMENT:
-                if (token.getLexeme().equals("let")) return ItemType.LET;
-                if (token.getLexeme().equals("be")) return ItemType.BE;
+                if (token.getLexeme().equals("let"))
+                    return Terminal.let;
+                if (token.getLexeme().equals("be"))
+                    return Terminal.be;
                 break;
 
             case LOOP:
                 switch (token.getLexeme()) {
-                    case "check": return ItemType.CHECK;
-                    case "otherwise": return ItemType.OTHERWISE;
-                    case "while": return ItemType.WHILE;
-                    case "repeat": return ItemType.REPEATID;
+                    case "check":
+                        return Terminal.check;
+                    case "orcheck":
+                        return Terminal.orcheck;
+                    case "otherwise":
+                        return Terminal.otherwise;
+                    case "while":
+                        return Terminal.while_;
+                    case "repeat":
+                        return Terminal.repeatid;
                 }
                 break;
 
             case PRIMITIVE:
                 switch (token.getLexeme()) {
-                    case "int": return ItemType.TYPE_INT;
-                    case "float": return ItemType.TYPE_FLOAT;
-                    case "string": return ItemType.TYPE_STRING;
-                    case "bool": return ItemType.TYPE_BOOL;
+                    case "int":
+                        return Terminal.type_int;
+                    case "float":
+                        return Terminal.type_float;
+                    case "string":
+                        return Terminal.type_string;
+                    case "bool":
+                        return Terminal.type_bool;
                 }
                 break;
 
             case LITERAL:
-                if (token.getLexeme().equals("yes")) return ItemType.TRUE;
-                if (token.getLexeme().equals("no")) return ItemType.FALSE;
-                if (token.getLexeme().matches("\\d+")) return ItemType.INT_LITERAL;
-                if (token.getLexeme().matches("\\d+\\.\\d+")) return ItemType.FLOAT_LITERAL;
-                if (token.getLexeme().matches("\".*\"")) return ItemType.STRING_LITERAL;
+                if (token.getLexeme().equals("yes"))
+                    return Terminal.yes;
+                if (token.getLexeme().equals("no"))
+                    return Terminal.yes;
+                if (token.getLexeme().matches("\\d+"))
+                    return Terminal.int_literal;
+                if (token.getLexeme().matches("\\d+\\.\\d+"))
+                    return Terminal.float_literal;
+                if (token.getLexeme().matches("\".*\""))
+                    return Terminal.string_literal;
                 break;
 
             case IDENTIFIER:
-                return ItemType.ID;
+                return Terminal.id;
 
             case OPERATOR:
                 switch (token.getLexeme()) {
-                    case "plus": return ItemType.PLUS;
-                    case "minus": return ItemType.MINUS;
-                    case "times": return ItemType.TIMES;
-                    case "over": return ItemType.OVER;
-                    case "mod": return ItemType.MOD;
+                    case "plus":
+                        return Terminal.plus;
+                    case "minus":
+                        return Terminal.minus;
+                    case "times":
+                        return Terminal.times;
+                    case "over":
+                        return Terminal.over;
+                    case "mod":
+                        return Terminal.mod;
                 }
                 break;
 
             case LOGICAL:
                 switch (token.getLexeme()) {
-                    case "both": return ItemType.BOTH;
-                    case "or": return ItemType.OR;
-                    case "not": return ItemType.NOT;
+                    case "both":
+                        return Terminal.both;
+                    case "or":
+                        return Terminal.or;
+                    case "not":
+                        return Terminal.not;
                 }
                 break;
 
             case CONDITIONAL:
                 switch (token.getLexeme()) {
-                    case "is": return ItemType.IS;
-                    case "isnt": return ItemType.ISNT;
-                    case "less": return ItemType.LESS;
-                    case "more": return ItemType.MORE;
-                    case "lesseq": return ItemType.LESSEQ;
-                    case "moreeq": return ItemType.MOREEQ;
+                    case "is":
+                        return Terminal.is;
+                    case "isnt":
+                        return Terminal.isnt;
+                    case "less":
+                        return Terminal.less;
+                    case "more":
+                        return Terminal.more;
+                    case "lesseq":
+                        return Terminal.lesseq;
+                    case "moreeq":
+                        return Terminal.moreeq;
                 }
                 break;
 
             case PUNCTUATION:
                 switch (token.getLexeme()) {
-                    case "(": return ItemType.LPAREN;
-                    case ")": return ItemType.RPAREN;
-                    case "{": return ItemType.LBRACE;
-                    case "}": return ItemType.RBRACE;
-                    case ";": return ItemType.SEMICOLON;
-                    case ",": return ItemType.COMMA;
-                    case ".": return ItemType.DOT;
+                    case "(":
+                        return Terminal.lparen;
+                    case ")":
+                        return Terminal.rparen;
+                    case "{":
+                        return Terminal.lbrace;
+                    case "}":
+                        return Terminal.rbrace;
+                    case ";":
+                        return Terminal.semicolon;
+                    case ",":
+                        return Terminal.comma;
+                    case ".":
+                        return Terminal.dot;
                 }
                 break;
         }
@@ -96,6 +138,4 @@ public class Items {
         return null; // Or throw an error if unexpected token
     }
 
-
 }
-
