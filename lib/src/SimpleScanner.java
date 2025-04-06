@@ -45,6 +45,7 @@ public class SimpleScanner {
                 columnNumber++;
             }
 
+            // Handle comments (/* ... */)
             if (c == '|' && !inString) {
                 if (scanner.hasNext()) {
                     char nextChar = scanner.next().charAt(0);
@@ -61,6 +62,7 @@ public class SimpleScanner {
                 continue;
             }
 
+            // Handle comment end
             if (inComment) {
                 if (c == '*' && scanner.hasNext() && scanner.next().charAt(0) == '|') {
                     inComment = false;
@@ -68,6 +70,7 @@ public class SimpleScanner {
                 continue;
             }
 
+            // Handle string literals
             if (c == '"' || c == '\'') {
                 if (!inString) {
                     inString = true;
@@ -77,7 +80,9 @@ public class SimpleScanner {
                 }
             }
 
+            // Handle tokenization logic (identifier, number, punctuation)
             if (!inString && !inComment && (Character.isWhitespace(c) || isDelimiter(c))) {
+                // If a token is accumulated, return it
                 String token = tokenBuilder.toString().trim();
                 if (!token.isEmpty()) {
                     Token result = createToken(token);
@@ -91,14 +96,17 @@ public class SimpleScanner {
                 }
                 tokenBuilder.setLength(0);
 
+                // If the character is a delimiter, immediately return the token for it
                 if (isDelimiter(c)) {
-                    return createToken(String.valueOf(c));
+                    return createToken(String.valueOf(c));  // return the delimiter as a token
                 }
             } else {
+                // Append the current character to the token being built
                 tokenBuilder.append(c);
             }
         }
 
+        // Handle final token if there's any remaining
         String token = tokenBuilder.toString().trim();
         if (!token.isEmpty()) {
             Token result = createToken(token);

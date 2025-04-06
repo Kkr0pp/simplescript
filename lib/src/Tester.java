@@ -1,5 +1,6 @@
 package lib.src;
 
+import lib.src.parseutil.Parser;
 import lib.src.tokenutil.SymbolTable;
 import lib.src.tokenutil.Token;
 
@@ -12,18 +13,7 @@ public class Tester {
         SimpleScanner scanner = null;
         try {
             scanner = new SimpleScanner(filePath);
-            SymbolTable symbolTable = scanner.getSymbolTable();
-
-            System.out.println("Tokens:");
-            Token token;
-            while ((token = scanner.getNextToken()) != null) {
-                System.out.println(token);
-            }
-
-            symbolTable.printSymbols();
-
-            // Reset scanner to read tokens again for parsing
-            scanner = new SimpleScanner(filePath);
+            Parser parser = new Parser(scanner);
 
 
         } catch (FileNotFoundException e) {

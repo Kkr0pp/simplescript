@@ -48,10 +48,10 @@ public class TokenUtil {
     }
 
     public static boolean isFunction(String word) {
-        return word.equals("task");
+        return word.matches("task|give");
     }
 
     public static boolean isDelimiter(char c) {
-        return ";(){}[],:.".indexOf(c) != -1;
+        return c == '(' || c == ')' || c == '{' || c == '}' || c == ';' || c == ',' || c == '[' || c == ']' || c == '.';
     }
 }

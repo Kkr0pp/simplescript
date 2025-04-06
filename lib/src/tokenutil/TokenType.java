@@ -10,5 +10,5 @@ public enum TokenType {
     PRIMITIVE, // int, float, string, boolean (TYPES)
     PUNCTUATION, // (, ), {, }, [, ], ;, :, ., ,,
     LITERAL, // int, float, string, boolean (VALUES)
-    FUNCTION, //task
+    FUNCTION, //task,give
 }
