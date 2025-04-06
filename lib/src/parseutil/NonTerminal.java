@@ -1,71 +1,36 @@
 package lib.src.parseutil;
 
 public enum NonTerminal {
+    START_PRIME,
+    START,
+    STMT,
+    SIMPLE_STMT,
+    STMT_TYPE,
+    SIMPLE_STMT_PRIME,
     PROGRAM,
-    SLIST,
-
-    STMNT,
-
-    VAR,
-
-    ASS,
-
-    IF,
-    ELSEIF,
-    ELSE,
-
-    WHILE,
-
-    REPEAT,
-
-    FUNCDEC,
-
-    ID,
-    ID_PRIME,
-    LETTER,
-    DIGIT,
-
-    PARAM,
-    PARAM_PRIME,
-
-    FUNCCALL,
-    ARG,
-    ARG_PRIME,
-
-    RETURN,
-
-    SHOWSTMNT,
-    GETSTMNT,
-
-    EXP,
-    EXP_PRIME,
-
-    LOG,
-    LOG_PRIME,
-
-    REL,
-    REL_OP,
-
-    ADD,
-    ADD_PRIME,
-    ADDOP,
-
-    MULTI,
-    MULTI_PRIME,
-    MULTIOP,
-
-    UNARY,
-    NOT_PRIME,
-    PRIMARY,
-
-    TYPE,
+    PROGRAM_PRIME,
+    DECL_STMT,
+    ASSIGN_STMT,
+    RETURN_STMT,
+    DATA_TYPE,
+    IO_STMT,
+    SHOW_FUNC,
+    GIVE_FUNC,
     LITERAL,
-
-    INT,
-    FLOAT,
-    STRING,
     BOOL,
-    PRIMITIVE,
-
-    CHARACTERS,
+    COMPOUND_STMT,
+    CONDITIONAL_STMT,
+    IF_STMT,
+    IF_ELSE_STMT,
+    ELSE_IF_STMT,
+    LOOP_STMT,
+    FUNC_DEC,
+    RETURN_TYPE,
+    PARAMS,
+    PARAMS_PRIME,
+    ARITHMETIC_OP,
+    COMPARISON_OP,
+    LOGICAL_OP,
+    STOP_STMT,
+    SKIP_STMT
 }
