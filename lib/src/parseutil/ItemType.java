@@ -84,5 +84,6 @@ public enum ItemType
     ID,                 // [a-zA-Z][a-zA-Z0-9]*
     INT_LITERAL,        // [0-9]+
     FLOAT_LITERAL,      // [0-9]+ "." [0-9]+
-    STRING_LITERAL     // ".*" -> .[a-zA-Z][a-zA-Z0-9]*
+    STRING_LITERAL,
+    DOLLAR// ".*" -> .[a-zA-Z][a-zA-Z0-9]*
 }

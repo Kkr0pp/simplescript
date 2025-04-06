@@ -1,9 +1,6 @@
 package lib.src;
 
 import lib.src.parseutil.Parser;
-import lib.src.tokenutil.SymbolTable;
-import lib.src.tokenutil.Token;
-
 import java.io.FileNotFoundException;
 
 public class Tester {
