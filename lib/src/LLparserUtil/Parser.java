@@ -2,71 +2,145 @@ package lib.src.LLparserUtil;
 
 import java.util.*;
 
-public class Parser {
-
+class Parser {
     private List<Token> tokens;
-    private int currentIndex;
+    private int currentPos;
+    private Token currentToken;
 
     public Parser(List<Token> tokens) {
         this.tokens = tokens;
-        this.currentIndex = 0;
+        this.currentPos = 0;
+        this.currentToken = tokens.get(currentPos);
     }
 
-    public void parse() {
-        try {
-            program();
-            System.out.println("Parsing completed successfully!");
-        } catch (Exception e) {
-            System.err.println("Parsing failed: " + e.getMessage());
+    private Token consume() {
+        Token token = currentToken;
+        currentPos++;
+        if (currentPos < tokens.size()) {
+            currentToken = tokens.get(currentPos);
+        }
+        return token;
+    }
+
+    private boolean match(String type) {
+        if (currentToken != null && currentToken.type.equals(type)) {
+            consume();
+            return true;
+        }
+        return false;
+    }
+
+    public ASTNode parseProgram() {
+        return parseSList();
+    }
+
+    private ASTNode parseSList() {
+        ASTNode stmt = parseStmt();
+        ASTNode sListPrime = parseSListPrime();
+        ASTNode node = new ASTNode("SLIST");
+        node.addChild(stmt);
+        node.addChild(sListPrime);
+        return node;
+    }
+
+    private ASTNode parseSListPrime() {
+        if (currentToken != null && currentToken.type.equals("KEYWORD") && currentToken.value.equals("let")) {
+            return parseSList(); // SLIST
+        } else {
+            return new ASTNode("e"); // epsilon
         }
     }
 
-    private void program() {
-        match(TokenType.KEYWORD); // "let", "return", etc.
-        stmt();
-        program();
-    }
-
-    private void stmt() {
-        Token token = currentToken();
-        if (token.getType() == TokenType.KEYWORD) {
-            if (token.getValue().equals("let")) {
-                declStmt(); // Process declaration statements like `let DATA_TYPE IDENTIFIER;`
-            } else if (token.getValue().equals("return")) {
-                returnStmt(); // Process return statements
+    private ASTNode parseStmt() {
+        if (match("KEYWORD") && (currentToken.value.equals("let") || currentToken.value.equals("show") || currentToken.value.equals("give"))) {
+            return parseSimpleStmt(); // Simple statement
+        } else if (match("KEYWORD") && currentToken.value.equals("check")) {
+            return parseCompoundStmt(); // Compound statement
+        } else if (currentToken.type.equals("IDENTIFIER")) {
+            // Identifier might begin DECL_STMT or FUNC_DEC
+            if (peekNextToken().type.equals("PUNCTUATION") && peekNextToken().value.equals("(")) {
+                return parseFuncDec();  // Function declaration
+            } else {
+                return parseDeclStmt(); // Variable declaration
             }
-            // Add other statements (e.g., IO statements, STOP statements)
-        } else {
-            throw new RuntimeException("Invalid statement: " + token.getValue());
         }
+        throw new RuntimeException("Unexpected token: " + currentToken);
     }
-
-    private void declStmt() {
-        match(TokenType.KEYWORD); // "let"
-        match(TokenType.DATA_TYPE); // DATA_TYPE (e.g., int, string, etc.)
-        match(TokenType.IDENTIFIER); // IDENTIFIER (variable name)
-        match(TokenType.DELIMITER); // ";"
-    }
-
-    private void returnStmt() {
-        match(TokenType.KEYWORD); // "return"
-        match(TokenType.LITERAL); // Literal value (e.g., number)
-    }
-
-    private void match(TokenType expected) {
-        Token token = currentToken();
-        if (token.getType() == expected) {
-            currentIndex++;
-        } else {
-            throw new RuntimeException("Expected " + expected + " but found " + token.getType());
+    private Token peekNextToken() {
+        if (currentPos + 1 < tokens.size()) {
+            return tokens.get(currentPos + 1);
         }
+        return null;  // End of tokens
+    }
+    private ASTNode parseFuncDec() {
+        match("KEYWORD"); // task
+        match("KEYWORD"); // return type (e.g., int, string)
+        match("IDENTIFIER"); // function name (e.g., simple)
+        match("PUNCTUATION"); // (
+
+        ASTNode params = parseParams(); // Parse parameters
+
+        match("PUNCTUATION"); // )
+        ASTNode funcBody = parseCompoundStmt(); // Function body
+
+        ASTNode node = new ASTNode("FUNC_DEC");
+        node.addChild(params);
+        node.addChild(funcBody);
+        return node;
     }
 
-    private Token currentToken() {
-        if (currentIndex < tokens.size()) {
-            return tokens.get(currentIndex);
-        } else {
-            return new Token(TokenType.EOF, "");
+    private ASTNode parseParams() {
+        ASTNode paramsNode = new ASTNode("PARAMS");
+
+        // Parse the first parameter
+        ASTNode paramNode = parseParam();
+        paramsNode.addChild(paramNode);
+
+        // Check if there are more parameters
+        while (match("PUNCTUATION") && currentToken.value.equals(",")) {
+            paramNode = parseParam(); // Parse the next parameter
+            paramsNode.addChild(paramNode);
         }
+
+        return paramsNode;
     }
+
+    private ASTNode parseParam() {
+        // A parameter consists of a data type followed by an identifier
+        ASTNode paramNode = new ASTNode("PARAM");
+
+        // Parse the data type
+        match("KEYWORD"); // string, int, float, etc.
+
+        // Parse the identifier
+        match("IDENTIFIER"); // variable name
+
+        return paramNode;
+    }
+
+
+
+    private ASTNode parseSimpleStmt() {
+        // Parsing for DECL_STMT, ASSIGN_STMT, RETURN_STMT, IO_STMT, LITERAL, STOP_STMT, SKIP_STMT
+        if (match("KEYWORD") && currentToken.value.equals("let")) {
+            return parseDeclStmt();
+        }
+        // Add other cases for each SIMPLE_STMT here
+        return null;
+    }
+
+    private ASTNode parseDeclStmt() {
+        match("KEYWORD"); // let
+        match("KEYWORD"); // type (string, int, etc.)
+        match("IDENTIFIER"); // identifier
+        match("PUNCTUATION"); // ;
+        return new ASTNode("DECL_STMT");
+    }
+
+    private ASTNode parseCompoundStmt() {
+        // Implement based on grammar
+        return new ASTNode("COMPOUND_STMT");
+    }
+
+    // You can continue defining all the other parsing methods based on your grammar
 }
