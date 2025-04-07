@@ -1,1 +1,2 @@
-let x be y;
+let int x;
+x be 10;

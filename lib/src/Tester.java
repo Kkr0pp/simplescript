@@ -1,29 +1,36 @@
 package lib.src;
 
-import lib.src.parseutil.Parser;
-import lib.src.parseutil.ParseTreeVisualizer;
-import java.io.FileNotFoundException;
+import lib.src.LLparserUtil.*;
+import java.io.*;
+import java.util.*;
 
 public class Tester {
-    public static void main(String[] args) {
-        String filePath = "lib/src/source_file_03.simp"; // Input file
 
-        SimpleScanner scanner = null;
-        try {
-            scanner = new SimpleScanner(filePath);
-            Parser parser = new Parser(scanner);
+    public static void main(String[] args) throws IOException {
+        // Specify the filename directly
+        String filePath = "lib/src/source_file_03.simp";  // Replace this with your desired .simp file path
 
-            // After parsing is complete, we visualize the parse tree
-            if (parser.getRoot() != null) {
-                ParseTreeVisualizer.showParseTree(parser.getRoot()); // Visualize the tree
-            }
+        // Create a Lexer instance to read and tokenize the file
+        Lexer lexer = new Lexer(filePath);
 
-        } catch (FileNotFoundException e) {
-            System.err.println("File not found: " + filePath);
-        } finally {
-            if (scanner != null) {
-                scanner.closeScanner();
-            }
+        // List to store the tokens
+        List<Token> tokens = new ArrayList<>();
+        Token token;
+
+        // Tokenize the source code
+        while ((token = lexer.nextToken()).getType() != TokenType.EOF) {
+            tokens.add(token);
         }
+
+        // Print the tokens for debugging (optional)
+        System.out.println("Tokens:");
+        for (Token t : tokens) {
+            System.out.println(t);
+        }
+
+        // Create a Parser instance and parse the tokens
+        Parser parser = new Parser(tokens);
+        parser.parse();
     }
 }
+
