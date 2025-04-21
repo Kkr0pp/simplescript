@@ -1,6 +1,7 @@
 package lib.src;
 
 import lib.src.generators.LL1ParsingTableGenerator;
+import lib.src.generators.SetTerminals;
 import lib.src.parseutil.Parser;
 import lib.src.generators.FirstFollowSetGenerator;
 import lib.src.tokenutil.*;

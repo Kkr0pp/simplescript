@@ -43,10 +43,10 @@ public class FirstFollowSetGenerator {
 
             }
 
-            for (String key : grammar.keySet()) //DEBUG
-            {
-                System.out.println("Key: " + key + " -> Values: " + grammar.get(key));
-            }
+//            for (String key : grammar.keySet()) //DEBUG
+//            {
+//                System.out.println("Key: " + key + " -> Values: " + grammar.get(key));
+//            }
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -56,26 +56,38 @@ public class FirstFollowSetGenerator {
     // Calculate the First set for each non-terminal
     private void calculateFirstSets() {
         Iterator<String> iterator = items.iterator();
+        Set<String> terminals = new HashSet<>();
+        Set<String> nonTerminals = new HashSet<>();
+        for(SetTerminals setTerminal : SetTerminals.values()) //Load Terminal Items
+        {
+            terminals.add(setTerminal.getStringValue());
+        }
         while (iterator.hasNext()) {
             String item = iterator.next();
-            if(!grammar.containsKey(item)) //TERMINAL
+            if(terminals.contains(item)) //Will Check if Terminal, if not continue
             {
                 Set<String> terminal = new HashSet<>();
                 terminal.add(item);
                 firstSets.put(item, terminal);
+                System.out.println("FIRST("+ item + ") = " + firstSets.get(item));//DEBUG
+            }
+            else
+            {
+                nonTerminals.add(item);
+                System.out.println("Non Terminal Found : " + item);//DEBUG
             }
         }
-        for (String nonTerminal : grammar.keySet()) {
-            firstSets.put(nonTerminal, calculateFirst(nonTerminal));
-            System.out.println("FIRST(" + nonTerminal + ") = " + firstSets.get(nonTerminal));//DEBUG
 
+        for (String nonTerminal : nonTerminals) {
+            firstSets.putIfAbsent(nonTerminal, calculateFirst(nonTerminal));
         }
+
     }
 
     // Helper method to calculate First set
     private Set<String> calculateFirst(String symbol) {
         Set<String> firstSet = new HashSet<>();
-
+        System.out.println("Calculating First of : " + symbol);//DEBUG
         if (!grammar.containsKey(symbol)) {
             firstSet.add(symbol); // Terminal
             return firstSet;
@@ -85,20 +97,18 @@ public class FirstFollowSetGenerator {
             Set <String> newProduction = new HashSet<>();
             if(grammar.get(symbol).size()>1)
             {
-                System.out.println(newProduction);//DEBUG
                 if(grammar.get(symbol).get(stackCounter).getFirst().toString().equals(grammar.get(symbol).get(stackCounter).getFirst().toString()))
                     continue;
                 else
+                {
                     newProduction.add(grammar.get(symbol).get(stackCounter++).getFirst().toString());
+                    System.out.println("DEBUGGING : " + newProduction);//DEBUG
+                }
             }
             else
                 newProduction.add(grammar.get(symbol).getFirst().getFirst().toString());
             firstSet.add(newProduction.toString());
 
-            if(symbol.equals("IF_STMT"))
-            {
-                System.out.println(newProduction);
-            }
             if ((stackCounter) == grammar.get(symbol).size())
                 break;
         }
